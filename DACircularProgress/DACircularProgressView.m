@@ -10,11 +10,6 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-#if TARGET_IPHONE_SIMULATOR
-#import <dlfcn.h>
-static CGFloat (*UIAnimationDragCoefficient)(void) = NULL;
-#endif
-
 @interface DACircularProgressLayer : CALayer
 
 @property(nonatomic, strong) UIColor *trackTintColor;
@@ -117,11 +112,6 @@ static CGFloat (*UIAnimationDragCoefficient)(void) = NULL;
     [appearance setProgressTintColor:[UIColor whiteColor]];
     [appearance setThicknessRatio:0.3f];
     [appearance setRoundedCorners:NO];
-    
-#if TARGET_IPHONE_SIMULATOR
-    void *UIKit = dlopen([[[NSBundle bundleForClass:[UIApplication class]] executablePath] fileSystemRepresentation], RTLD_LAZY);
-    UIAnimationDragCoefficient = (CGFloat (*)(void))dlsym(UIKit, "UIAnimationDragCoefficient");
-#endif
 }
 
 + (Class)layerClass
@@ -173,10 +163,6 @@ static CGFloat (*UIAnimationDragCoefficient)(void) = NULL;
     {
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"progress"];
         animation.duration = fabsf(self.progress - pinnedProgress); // Same duration as UIProgressView animation
-#if TARGET_IPHONE_SIMULATOR
-        if (UIAnimationDragCoefficient)
-            animation.duration *= UIAnimationDragCoefficient();
-#endif
         animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
         animation.fromValue = [NSNumber numberWithFloat:self.progress];
         animation.toValue = [NSNumber numberWithFloat:pinnedProgress];
